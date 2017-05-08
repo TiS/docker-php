@@ -1,2 +1,21 @@
-# docker-php
-Docker PHP image
+# Docker PHP image with additional extensions
+
+Docker PHP image (7.0) with additional services and extensions
+
+## Included extensions:
+
+* gd
+* iconv
+* mcrypt
+* memcached
+* mysql (PDO)
+* intl
+* interbase
+* zip
+
+## Included modules / services:
+
+* composer
+* git
+* phpunit
+
