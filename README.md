@@ -2,7 +2,7 @@
 
 Docker PHP image (7.0) with additional services and extensions
 
-## Included extensions:
+## Included extensions
 
 * gd
 * iconv
@@ -13,7 +13,7 @@ Docker PHP image (7.0) with additional services and extensions
 * interbase
 * zip
 
-## Included modules / services:
+## Included modules / services
 
 * composer
 * git
