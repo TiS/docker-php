@@ -1,6 +1,6 @@
 # Docker PHP image with additional extensions
 
-Docker PHP image (7.0) with additional services and extensions
+Docker PHP image (7.1) with additional services and extensions
 
 ## Included extensions
 
