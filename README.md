@@ -12,6 +12,8 @@ Docker PHP image (7.1) with additional services and extensions
 * intl
 * interbase
 * zip
+* soap
+* xdebug
 
 ## Included modules / services
 
