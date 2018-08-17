@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
         libpng-dev \
         libxml2-dev
 RUN pecl install memcached-3.0.4 \
-    && pecl install xdebug-2.6.0 \
+    && pecl install xdebug-2.6.0
 RUN curl -Ss --location --output /usr/local/bin/phpunit https://phar.phpunit.de/phpunit.phar \
     && chmod +x /usr/local/bin/phpunit
 RUN docker-php-ext-install -j$(nproc) iconv pdo_mysql intl interbase zip soap \
