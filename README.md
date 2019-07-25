@@ -10,14 +10,14 @@ Latest tag is for PHP 7.2.
 
 * gd
 * iconv
+* interbase
+* intl
 * mcrypt (up to 7.1 only)
 * memcached
 * mysql (PDO)
-* intl
-* interbase
-* zip
 * soap
 * xdebug
+* zip
 
 ## Included modules / services
 

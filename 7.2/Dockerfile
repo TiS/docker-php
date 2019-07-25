@@ -20,9 +20,10 @@ RUN pecl install memcached-3.0.4 \
     && pecl install xdebug-2.6.0
 RUN curl -Ss --location --output /usr/local/bin/phpunit https://phar.phpunit.de/phpunit.phar \
     && chmod +x /usr/local/bin/phpunit
-RUN docker-php-ext-install -j$(nproc) iconv pdo_mysql intl interbase zip soap
+RUN docker-php-ext-install -j$(nproc) iconv intl interbase pdo_mysql soap zip
 RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install -j$(nproc) gd
 RUN docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/ && docker-php-ext-install ldap
 RUN docker-php-ext-enable memcached xdebug
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+RUN php -m

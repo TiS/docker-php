@@ -10,18 +10,20 @@ RUN apt-get install -y \
         zlib1g-dev \
         firebird-dev \
         unzip \
-        mysql-client \
+        mariadb-client \
         libfreetype6-dev \
         libjpeg62-turbo-dev \
+        libldap2-dev \
         libmcrypt-dev \
         libpng-dev \
         libxml2-dev
-RUN pecl install memcached-3.0.3 \
-    && pecl install xdebug-2.5.0
+RUN pecl install memcached-3.0.4 \
+    && pecl install xdebug-2.6.0
 RUN curl -Ss --location --output /usr/local/bin/phpunit https://phar.phpunit.de/phpunit.phar \
     && chmod +x /usr/local/bin/phpunit
-RUN docker-php-ext-install -j$(nproc) iconv mcrypt pdo_mysql intl interbase zip soap \
-    && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+RUN docker-php-ext-install -j$(nproc) iconv intl interbase mcrypt pdo_mysql soap zip
+RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install -j$(nproc) gd
-RUN docker-php-ext-enable memcached xdebug soap
+RUN docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/ && docker-php-ext-install ldap
+RUN docker-php-ext-enable memcached xdebug
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
