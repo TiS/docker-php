@@ -1,4 +1,4 @@
-FROM php:7.0
+FROM php:7.3
 RUN apt-get update
 RUN apt-get install -y \
         nodejs \
@@ -14,9 +14,9 @@ RUN apt-get install -y \
         libfreetype6-dev \
         libjpeg62-turbo-dev \
         libldap2-dev \
-        libmcrypt-dev \
         libpng-dev \
-        libxml2-dev
+        libxml2-dev \
+        libzip-dev
 RUN pecl install memcached-3.1.3
 RUN pecl install xdebug-2.7.2
 RUN curl -Ss --location --output /usr/local/bin/phpunit https://phar.phpunit.de/phpunit.phar \
@@ -24,7 +24,6 @@ RUN curl -Ss --location --output /usr/local/bin/phpunit https://phar.phpunit.de/
 RUN docker-php-ext-install -j$(nproc) iconv
 RUN docker-php-ext-install -j$(nproc) intl
 RUN docker-php-ext-install -j$(nproc) interbase
-RUN docker-php-ext-install -j$(nproc) mcrypt
 RUN docker-php-ext-install -j$(nproc) pdo_mysql
 RUN docker-php-ext-install -j$(nproc) soap
 RUN docker-php-ext-install -j$(nproc) zip

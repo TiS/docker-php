@@ -2,7 +2,7 @@
 
 Docker PHP image with additional services and extensions.
 
-Avaialble tags are 7.0, 7.1 and 7.2, corresponding with various PHP versions.
+Avaialble tags are 7.0, 7.1, 7.2 and 7.3, corresponding with various PHP versions.
 
 Latest tag is for PHP 7.2.
 
