@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+REPOSITORY=tstruczynski/php
 VERSIONS=( 7.0 7.1 7.2 7.3 7.4)
 UPLOAD=0
 
@@ -36,7 +37,7 @@ do
 
   cd $version
 	echo "Building version $version START"
-	docker build . -t tstruczynski/php:$version
+	docker build . -t $REPOSITORY:$version
 	echo "Building version $version END"
 	cd ..
 done
@@ -51,8 +52,8 @@ echo "Uploading to GITHUB"
 
 if [[ -n ${ONLY_VERSION} ]]; then
   echo "Only version ${ONLY_VERSION}"
-  docker push tstruczynski/php:${ONLY_VERSION}
+  docker push $REPOSITORY:${ONLY_VERSION}
 else
   echo "All versions"
-  docker push -a tstruczynski/php
+  docker push -a $REPOSITORY
 fi
