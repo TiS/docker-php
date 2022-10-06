@@ -1,0 +1,9 @@
+--build-arg PHP_VERSION=8.1
+--build-arg DEBIAN_VERSION=11
+--build-arg XLSWRITER_VERSION=1.5.2
+--build-arg MEMCACHED_VERSION=3.2.0
+--build-arg SQLSRV_VERSION=5.10.1
+--build-arg PDO_SQLSRV_VERSION=5.10.1
+--build-arg XDEBUG_VERSION=3.1.4
+--build-arg COMPOSER_VERSION=latest
+--build-arg PHPUNIT_VERSION=9

@@ -2,7 +2,8 @@
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 REPOSITORY=tstruczynski/php
-VERSIONS=( 7.0 7.1 7.2 7.3 7.4)
+VERSIONS=( 7.0 7.1 7.2 7.3 7.4 8.0 8.1)
+LATEST=7.4
 UPLOAD=0
 last_command="";
 
@@ -42,14 +43,21 @@ trap 'cleanup' EXIT
 
 for version in "${VERSIONS[@]}"
 do
-  if [[ ! -z "$ONLY_VERSION" && "$version" != "$ONLY_VERSION" ]]; then
+  if [[ -n "$ONLY_VERSION" && "$version" != "$ONLY_VERSION" ]]; then
     echo "SKIPPING VERSION $version"
     continue
   fi;
 
   cd "$version"
 	echo "Building version $version START"
-	docker build . -t $REPOSITORY:"$version"
+	# shellcheck disable=SC2002
+	# shellcheck disable=SC2046
+	docker build . -t $REPOSITORY:"$version" $(cat .build-args | paste -s -d " " /dev/stdin)
+
+	if [ "$version" == "$LATEST" ]; then
+	  docker tag $REPOSITORY:"$version" $REPOSITORY:latest
+	fi;
+
 	echo "Building version $version END"
 	cd ..
 done
@@ -64,6 +72,10 @@ echo "Uploading to GITHUB"
 if [[ -n ${ONLY_VERSION} ]]; then
   echo "Only version ${ONLY_VERSION}"
   docker push $REPOSITORY:"${ONLY_VERSION}"
+
+	if [ "${ONLY_VERSION}" == "$LATEST" ]; then
+	  docker push $REPOSITORY:latest
+	fi;
 else
   echo "All versions"
   docker push -a $REPOSITORY

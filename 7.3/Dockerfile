@@ -1,13 +1,16 @@
 # https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
-ARG PHP_VERSION=7.3
+ARG PHP_VERSION
+ARG COMPOSER_VERSION
 
+FROM composer:${COMPOSER_VERSION} as composer
 FROM php:${PHP_VERSION} AS symfony_php
-ARG DEBIAN_VERSION=11
-ARG XLSWRITER_VERSION=1.5.2
-ARG MEMCACHED_VERSION=3.2.0
-ARG SQLSRV_VERSION=5.10.1
-ARG PDO_SQLSRV_VERSION=5.10.1
-ARG XDEBUG_VERSION=3.1.4
+ARG DEBIAN_VERSION
+ARG XLSWRITER_VERSION
+ARG MEMCACHED_VERSION
+ARG SQLSRV_VERSION
+ARG PDO_SQLSRV_VERSION
+ARG XDEBUG_VERSION
+ARG PHPUNIT_VERSION
 
 # https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
 ENV COMPOSER_ALLOW_SUPERUSER=1
@@ -95,6 +98,6 @@ RUN set -eux; \
     apt-get clean -y; \
     rm -rf /var/lib/apt/lists/*;
 
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=composer /usr/bin/composer /usr/bin/composer
 
-RUN curl -Ss --location --output /usr/local/bin/phpunit https://phar.phpunit.de/phpunit.phar && chmod +x /usr/local/bin/phpunit
+RUN curl -Ss --location --output /usr/local/bin/phpunit https://phar.phpunit.de/phpunit-${PHPUNIT_VERSION}.phar && chmod +x /usr/local/bin/phpunit
