@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
-REPOSITORY=tstruczynski/php
-VERSIONS=( 7.0 7.1 7.2 7.3 7.4 8.0 8.1)
+REPOSITORIES=(tstruczynski/php ghcr.io/tis/docker-php)
+VERSIONS=(7.0 7.1 7.2 7.3 7.4 8.0 8.1)
 LATEST=7.4
 UPLOAD=0
 last_command="";
@@ -52,11 +52,21 @@ do
 	echo "Building version $version START"
 	# shellcheck disable=SC2002
 	# shellcheck disable=SC2046
-	docker build . -t $REPOSITORY:"$version" $(cat .build-args | paste -s -d " " /dev/stdin)
+	docker build . \
+	  -t "${REPOSITORIES[0]}":"$version" \
+	  --label "org.opencontainers.image.source=https://github.com/TiS/docker-php" \
+    --label "org.opencontainers.image.description=Docker PHP image with additional services and extensions." \
+    --label "org.opencontainers.image.licenses=MIT" \
+ 	  $(cat .build-args | paste -s -d " " /dev/stdin);
 
-	if [ "$version" == "$LATEST" ]; then
-	  docker tag $REPOSITORY:"$version" $REPOSITORY:latest
-	fi;
+	for repository in "${REPOSITORIES[@]}"
+	do
+	  docker tag "${REPOSITORIES[0]}":"$version" "$repository":"$version"
+
+    if [ "$version" == "$LATEST" ]; then
+      docker tag "${REPOSITORIES[0]}":"$version" "$repository":latest
+    fi;
+	done
 
 	echo "Building version $version END"
 	cd ..
@@ -67,16 +77,18 @@ if [[ ${UPLOAD} != 1 ]]; then
   exit
 fi
 
-echo "Uploading to GITHUB"
+echo "Uploading to repositories"
 
 if [[ -n ${ONLY_VERSION} ]]; then
   echo "Only version ${ONLY_VERSION}"
-  docker push $REPOSITORY:"${ONLY_VERSION}"
+  for repository in "${REPOSITORIES[@]}"; do
+    docker push "$repository":"${ONLY_VERSION}";
 
-	if [ "${ONLY_VERSION}" == "$LATEST" ]; then
-	  docker push $REPOSITORY:latest
-	fi;
+    if [ "${ONLY_VERSION}" == "$LATEST" ]; then
+      docker push "$repository":latest
+    fi;
+  done
 else
   echo "All versions"
-  docker push -a $REPOSITORY
+  for repository in "${REPOSITORIES[@]}"; do docker push -a "$repository"; done
 fi

@@ -16,6 +16,10 @@ ARG PHPUNIT_VERSION
 ENV COMPOSER_ALLOW_SUPERUSER=1
 ENV PATH="${PATH}:/root/.composer/vendor/bin"
 
+# Debian stretch moved to archive; sources have to be updated accordingly
+RUN echo "deb http://archive.debian.org/debian/ stretch main non-free contrib \
+          deb http://archive.debian.org/debian-security/ stretch/updates main non-free contrib" > /etc/apt/sources.list
+
 ## Persistent / runtime deps
 RUN set -eux; \
     apt-get update; \
@@ -80,8 +84,8 @@ RUN set -eux; \
     pecl install xdebug-${XDEBUG_VERSION}; \
     docker-php-ext-configure intl; \
     docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/; \
-    docker-php-ext-install -j$(nproc) gd iconv intl pdo pdo_mysql zip ldap pdo_firebird soap; \
-    docker-php-ext-enable memcached xlswriter sqlsrv pdo_sqlsrv xdebug; \
+    docker-php-ext-install -j$(nproc) gd iconv intl pdo pdo_mysql zip ldap pcntl pdo_firebird soap; \
+    docker-php-ext-enable memcached xlswriter sqlsrv pcntl pdo_sqlsrv xdebug; \
     ## Cleanup build time dependencies
     apt-get remove -y --purge \
       libfreetype6-dev \

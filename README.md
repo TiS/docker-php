@@ -2,7 +2,7 @@
 
 Docker PHP image with additional services and extensions.
 
-Avaialble tags are 7.0, 7.1, 7.2, 7.3, 7.4, corresponding with various PHP versions.
+Avaialble tags are 7.0, 7.1, 7.2, 7.3, 7.4, 8.0, 8.1 corresponding with various PHP versions.
 
 ## Included extensions
 
@@ -14,10 +14,11 @@ Avaialble tags are 7.0, 7.1, 7.2, 7.3, 7.4, corresponding with various PHP versi
 * memcached
 * mysql (PDO)
 * MSSQL (PDO)
+* PCNTL
 * soap
 * xdebug
-* zip
 * xlswriter
+* zip
 
 ## Included modules / services
 

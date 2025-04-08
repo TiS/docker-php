@@ -78,8 +78,8 @@ RUN set -eux; \
     pecl install xdebug-${XDEBUG_VERSION}; \
     docker-php-ext-configure intl; \
     docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/; \
-    docker-php-ext-install -j$(nproc) gd iconv intl pdo pdo_mysql zip ldap pdo_firebird soap; \
-    docker-php-ext-enable memcached xlswriter sqlsrv pdo_sqlsrv xdebug; \
+    docker-php-ext-install -j$(nproc) gd iconv intl pdo pdo_mysql zip ldap pcntl pdo_firebird soap; \
+    docker-php-ext-enable memcached xlswriter sqlsrv pcntl pdo_sqlsrv xdebug; \
     ## Cleanup build time dependencies
     apt-get remove -y --purge \
       libfreetype6-dev \
