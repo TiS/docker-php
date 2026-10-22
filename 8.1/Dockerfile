@@ -2,8 +2,8 @@
 ARG PHP_VERSION
 ARG COMPOSER_VERSION
 
-FROM composer:${COMPOSER_VERSION} as composer
-FROM php:${PHP_VERSION} AS symfony_php
+FROM composer:${COMPOSER_VERSION:-latest} AS composer
+FROM php:${PHP_VERSION:-8.1} AS symfony_php
 ARG DEBIAN_VERSION
 ARG XLSWRITER_VERSION
 ARG MEMCACHED_VERSION
@@ -19,7 +19,7 @@ ENV PATH="${PATH}:/root/.composer/vendor/bin"
 ## Persistent / runtime deps
 RUN set -eux; \
     curl https://packages.microsoft.com/keys/microsoft.asc > /usr/share/keyrings/microsoft.asc; \
-    curl https://packages.microsoft.com/config/debian/${DEBIAN_VERSION}/prod.list \
+    curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list \
       | sed -E "s/(\[)(.*)(\])/\1\2 signed-by=\/usr\/share\/keyrings\/microsoft.asc\3/" \
       > /etc/apt/sources.list.d/mssql-release.list; \
     apt-get update; \
@@ -28,26 +28,25 @@ RUN set -eux; \
       bash \
       zip \
       unzip \
-      software-properties-common \
       libfcgi-bin \
       nodejs \
       git \
       wget \
       mariadb-client \
-      # MSSQL requirements
+      # MSSQL requirements \
       msodbcsql18 \
-      # GD requirements
+      # GD requirements \
       libjpeg62-turbo \
       libpng16-16 \
       libfreetype6 \
-      # MEMCACHED requirements
+      # MEMCACHED requirements \
       libmemcached11 \
       libmemcachedutil2 \
-      # ZIP requirements
-      libzip4 \
-      # Firebird requirements
+      # ZIP requirements \
+      libzip5 \
+      # Firebird requirements \
       libfbclient2; \
-    # CLEANUP
+    # CLEANUP \
     apt clean -y; \
     rm -rf /var/lib/apt/lists/*;
 
