@@ -2,7 +2,7 @@
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 REPOSITORIES=(tstruczynski/php ghcr.io/tis/docker-php)
-VERSIONS=(7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2)
+VERSIONS=(7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2 8.3)
 LATEST=7.4
 UPLOAD=0
 last_command="";
