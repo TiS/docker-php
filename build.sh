@@ -48,16 +48,14 @@ do
     continue
   fi;
 
-  cd "$version"
-	echo "Building version $version START"
-	# shellcheck disable=SC2002
-	# shellcheck disable=SC2046
-	docker build . \
+  echo "Building version $version START"
+	docker build \
+	  -f "docker/Dockerfile.${version}" \
 	  -t "${REPOSITORIES[0]}":"$version" \
 	  --label "org.opencontainers.image.source=https://github.com/TiS/docker-php" \
-    --label "org.opencontainers.image.description=Docker PHP image with additional services and extensions." \
-    --label "org.opencontainers.image.licenses=MIT" \
- 	  $(cat .build-args | paste -s -d " " /dev/stdin);
+	  --label "org.opencontainers.image.description=Docker PHP image with additional services and extensions." \
+	  --label "org.opencontainers.image.licenses=MIT" \
+	  docker
 
 	for repository in "${REPOSITORIES[@]}"
 	do
@@ -69,7 +67,6 @@ do
 	done
 
 	echo "Building version $version END"
-	cd ..
 done
 
 if [[ ${UPLOAD} != 1 ]]; then

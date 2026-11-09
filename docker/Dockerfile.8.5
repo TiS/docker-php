@@ -1,54 +1,25 @@
 # https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
-ARG PHP_VERSION
-ARG COMPOSER_VERSION
+ARG PHP_VERSION=8.5
+ARG COMPOSER_VERSION=latest
+ARG DEBIAN_VERSION=13
+ARG XLSWRITER_VERSION=1.5.5
+ARG MEMCACHED_VERSION=3.4.0
+ARG SQLSRV_VERSION=5.13.3
+ARG XDEBUG_VERSION=3.5.3
+ARG PHPUNIT_VERSION=9
 
-FROM composer:${COMPOSER_VERSION:-latest} AS composer
-FROM php:${PHP_VERSION:-8.2} AS symfony_php
-ARG DEBIAN_VERSION
+FROM php:${PHP_VERSION} AS php-base
+FROM composer:${COMPOSER_VERSION} AS composer
+
+# Phase 1: compile extensions. Dev packages are installed once and left in place.
+# iconv and pdo are already built into the official PHP image, so they are not compiled again.
+FROM php-base AS builder
+
 ARG XLSWRITER_VERSION
 ARG MEMCACHED_VERSION
 ARG SQLSRV_VERSION
-ARG PDO_SQLSRV_VERSION
 ARG XDEBUG_VERSION
 ARG PHPUNIT_VERSION
-
-# https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
-ENV COMPOSER_ALLOW_SUPERUSER=1
-ENV PATH="${PATH}:/root/.composer/vendor/bin"
-
-## Persistent / runtime deps
-RUN set -eux; \
-    curl https://packages.microsoft.com/keys/microsoft.asc > /usr/share/keyrings/microsoft.asc; \
-    curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list \
-      | sed -E "s/(\[)(.*)(\])/\1\2 signed-by=\/usr\/share\/keyrings\/microsoft.asc\3/" \
-      > /etc/apt/sources.list.d/mssql-release.list; \
-    apt-get update; \
-    ACCEPT_EULA=Y apt-get install -y \
-      acl \
-      bash \
-      zip \
-      unzip \
-      libfcgi-bin \
-      nodejs \
-      git \
-      wget \
-      mariadb-client \
-      # MSSQL requirements \
-      msodbcsql18 \
-      # GD requirements \
-      libjpeg62-turbo \
-      libpng16-16 \
-      libfreetype6 \
-      # MEMCACHED requirements \
-      libmemcached11 \
-      libmemcachedutil2 \
-      # ZIP requirements \
-      libzip5 \
-      # Firebird requirements \
-      libfbclient2; \
-    # CLEANUP \
-    apt clean -y; \
-    rm -rf /var/lib/apt/lists/*;
 
 RUN set -eux; \
     apt-get update; \
@@ -64,40 +35,103 @@ RUN set -eux; \
       libldap2-dev \
       firebird-dev \
       libxml2-dev \
-      zlib1g-dev \
-      unixodbc-dev; \
-    # apt cleanup \
-    apt-get clean -y; \
-    rm -rf /var/lib/apt/lists/*; \
-    # Actual extensions install \
+      unixodbc-dev
+
+RUN set -eux; \
     docker-php-ext-configure gd --with-freetype --with-jpeg; \
-    pecl install memcached-${MEMCACHED_VERSION}; \
-    pecl install xlswriter-${XLSWRITER_VERSION}; \
-    pecl install sqlsrv-${SQLSRV_VERSION}; \
-    pecl install pdo_sqlsrv-${SQLSRV_VERSION}; \
-    pecl install xdebug-${XDEBUG_VERSION}; \
+    docker-php-ext-install -j"$(nproc)" gd
+
+RUN set -eux; \
     docker-php-ext-configure intl; \
+    docker-php-ext-install -j"$(nproc)" intl
+
+RUN set -eux; \
+    docker-php-ext-install -j"$(nproc)" pdo_mysql
+
+RUN set -eux; \
+    docker-php-ext-install -j"$(nproc)" zip
+
+RUN set -eux; \
     docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/; \
-    docker-php-ext-install -j$(nproc) gd iconv intl pdo pdo_mysql zip ldap pcntl pdo_firebird soap; \
-    docker-php-ext-enable memcached xlswriter sqlsrv pcntl pdo_sqlsrv xdebug; \
-    ## Cleanup build time dependencies \
-    apt-get remove -y --purge \
-      libfreetype6-dev \
-      libjpeg62-turbo-dev \
-      libpng-dev \
-      libmemcached-dev \
-      zlib1g-dev \
-      libicu-dev \
-      libzip-dev \
-      libldap2-dev \
-      firebird-dev \
-      libxml2-dev \
-      zlib1g-dev \
-      unixodbc-dev; \
-    apt-get autoremove -y; \
+    docker-php-ext-install -j"$(nproc)" ldap
+
+RUN set -eux; \
+    docker-php-ext-install -j"$(nproc)" pcntl
+
+RUN set -eux; \
+    docker-php-ext-install -j"$(nproc)" pdo_firebird
+
+RUN set -eux; \
+    docker-php-ext-install -j"$(nproc)" soap
+
+RUN set -eux; \
+    pecl install "memcached-${MEMCACHED_VERSION}"; \
+    docker-php-ext-enable memcached
+
+RUN set -eux; \
+    pecl install "xlswriter-${XLSWRITER_VERSION}"; \
+    docker-php-ext-enable xlswriter
+
+RUN set -eux; \
+    pecl install "sqlsrv-${SQLSRV_VERSION}"; \
+    docker-php-ext-enable sqlsrv
+
+RUN set -eux; \
+    pecl install "pdo_sqlsrv-${SQLSRV_VERSION}"; \
+    docker-php-ext-enable pdo_sqlsrv
+
+RUN set -eux; \
+    pecl install "xdebug-${XDEBUG_VERSION}"; \
+    docker-php-ext-enable xdebug
+
+COPY --from=composer /usr/bin/composer /opt/export/usr/bin/composer
+
+RUN set -eux; \
+    mkdir -p /opt/export/usr/local/bin /opt/export/usr/local/lib/php /opt/export/usr/local/etc/php; \
+    curl -fsSL --output /opt/export/usr/local/bin/phpunit "https://phar.phpunit.de/phpunit-${PHPUNIT_VERSION}.phar"; \
+    chmod +x /opt/export/usr/local/bin/phpunit; \
+    cp -a /usr/local/lib/php/extensions /opt/export/usr/local/lib/php/extensions; \
+    cp -a /usr/local/etc/php/conf.d /opt/export/usr/local/etc/php/conf.d
+
+# Phase 2: runtime image. Only runtime packages are installed, then apt metadata is removed.
+# Extensions, Composer, and PHPUnit arrive in a single copy.
+FROM php-base AS symfony_php
+
+ARG DEBIAN_VERSION
+
+# https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
+ENV COMPOSER_ALLOW_SUPERUSER=1 \
+    PATH="${PATH}:/root/.composer/vendor/bin"
+
+RUN set -eux; \
+    curl -fsSL -o /tmp/packages-microsoft-prod.deb \
+      "https://packages.microsoft.com/config/debian/${DEBIAN_VERSION}/packages-microsoft-prod.deb"; \
+    dpkg -i /tmp/packages-microsoft-prod.deb; \
+    rm -f /tmp/packages-microsoft-prod.deb; \
+    apt-get update; \
+    ACCEPT_EULA=Y apt-get install -y --no-install-recommends \
+      acl \
+      bash \
+      zip \
+      unzip \
+      libfcgi-bin \
+      nodejs \
+      git \
+      wget \
+      mariadb-client \
+      msodbcsql18 \
+      libgssapi-krb5-2 \
+      libjpeg62-turbo \
+      libpng16-16t64 \
+      libfreetype6 \
+      libmemcached11t64 \
+      libmemcachedutil2t64 \
+      libzip5 \
+      libfbclient2 \
+      libicu76 \
+      libldap2 \
+      unixodbc; \
     apt-get clean -y; \
-    rm -rf /var/lib/apt/lists/*;
+    rm -rf /var/lib/apt/lists/*
 
-COPY --from=composer /usr/bin/composer /usr/bin/composer
-
-RUN curl -Ss --location --output /usr/local/bin/phpunit https://phar.phpunit.de/phpunit-${PHPUNIT_VERSION}.phar && chmod +x /usr/local/bin/phpunit
+COPY --from=builder /opt/export/ /
