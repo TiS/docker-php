@@ -2,7 +2,7 @@
 ARG PHP_VERSION
 ARG COMPOSER_VERSION
 
-FROM composer:${COMPOSER_VERSION} as composer
+FROM composer:${COMPOSER_VERSION} AS composer
 FROM php:${PHP_VERSION} AS symfony_php
 ARG DEBIAN_VERSION
 ARG XLSWRITER_VERSION
@@ -17,7 +17,10 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 ENV PATH="${PATH}:/root/.composer/vendor/bin"
 
 ## Persistent / runtime deps
+# Debian 11 (Bullseye) package files have left deb.debian.org. archive.debian.org still serves them.
 RUN set -eux; \
+    sed -i 's|http://deb.debian.org/debian|http://archive.debian.org/debian|g' /etc/apt/sources.list; \
+    printf 'Acquire::Check-Valid-Until "false";\n' > /etc/apt/apt.conf.d/99no-check-valid-until; \
     curl https://packages.microsoft.com/keys/microsoft.asc > /usr/share/keyrings/microsoft.asc; \
     curl https://packages.microsoft.com/config/debian/${DEBIAN_VERSION}/prod.list \
       | sed -E "s/(\[)(.*)(\])/\1\2 signed-by=\/usr\/share\/keyrings\/microsoft.asc\3/" \

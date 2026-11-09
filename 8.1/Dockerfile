@@ -66,10 +66,10 @@ RUN set -eux; \
       libxml2-dev \
       zlib1g-dev \
       unixodbc-dev; \
-    # apt cleanup
+    # apt cleanup \
     apt-get clean -y; \
     rm -rf /var/lib/apt/lists/*; \
-    # Actual extensions install
+    # Actual extensions install \
     docker-php-ext-configure gd --with-freetype --with-jpeg; \
     pecl install memcached-${MEMCACHED_VERSION}; \
     pecl install xlswriter-${XLSWRITER_VERSION}; \
@@ -80,7 +80,7 @@ RUN set -eux; \
     docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/; \
     docker-php-ext-install -j$(nproc) gd iconv intl pdo pdo_mysql zip ldap pcntl pdo_firebird soap; \
     docker-php-ext-enable memcached xlswriter sqlsrv pcntl pdo_sqlsrv xdebug; \
-    ## Cleanup build time dependencies
+    ## Cleanup build time dependencies \
     apt-get remove -y --purge \
       libfreetype6-dev \
       libjpeg62-turbo-dev \

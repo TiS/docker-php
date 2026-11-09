@@ -2,8 +2,8 @@
 ARG PHP_VERSION
 ARG COMPOSER_VERSION
 
-FROM composer:${COMPOSER_VERSION} as composer
-FROM php:${PHP_VERSION} AS symfony_php
+FROM composer:${COMPOSER_VERSION:-latest} AS composer
+FROM php:${PHP_VERSION:-8.0} AS symfony_php
 ARG DEBIAN_VERSION
 ARG XLSWRITER_VERSION
 ARG MEMCACHED_VERSION
@@ -17,9 +17,12 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 ENV PATH="${PATH}:/root/.composer/vendor/bin"
 
 ## Persistent / runtime deps
+# Debian 11 (Bullseye) package files have left deb.debian.org. archive.debian.org still serves them.
 RUN set -eux; \
+    sed -i 's|http://deb.debian.org/debian|http://archive.debian.org/debian|g' /etc/apt/sources.list; \
+    printf 'Acquire::Check-Valid-Until "false";\n' > /etc/apt/apt.conf.d/99no-check-valid-until; \
     curl https://packages.microsoft.com/keys/microsoft.asc > /usr/share/keyrings/microsoft.asc; \
-    curl https://packages.microsoft.com/config/debian/${DEBIAN_VERSION}/prod.list \
+    curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list \
       | sed -E "s/(\[)(.*)(\])/\1\2 signed-by=\/usr\/share\/keyrings\/microsoft.asc\3/" \
       > /etc/apt/sources.list.d/mssql-release.list; \
     apt-get update; \
@@ -34,20 +37,20 @@ RUN set -eux; \
       git \
       wget \
       mariadb-client \
-      # MSSQL requirements
+      # MSSQL requirements \
       msodbcsql18 \
-      # GD requirements
+      # GD requirements \
       libjpeg62-turbo \
       libpng16-16 \
       libfreetype6 \
-      # MEMCACHED requirements
+      # MEMCACHED requirements \
       libmemcached11 \
       libmemcachedutil2 \
-      # ZIP requirements
+      # ZIP requirements \
       libzip4 \
-      # Firebird requirements
+      # Firebird requirements \
       libfbclient2; \
-    # CLEANUP
+    # CLEANUP \
     apt clean -y; \
     rm -rf /var/lib/apt/lists/*;
 
@@ -58,6 +61,7 @@ RUN set -eux; \
       libjpeg62-turbo-dev \
       libpng-dev \
       libmemcached-dev \
+      libssl-dev \
       zlib1g-dev \
       libicu-dev \
       libzip-dev \
@@ -66,10 +70,10 @@ RUN set -eux; \
       libxml2-dev \
       zlib1g-dev \
       unixodbc-dev; \
-    # apt cleanup
+    # apt cleanup \
     apt-get clean -y; \
     rm -rf /var/lib/apt/lists/*; \
-    # Actual extensions install
+    # Actual extensions install \
     docker-php-ext-configure gd --with-freetype --with-jpeg; \
     pecl install memcached-${MEMCACHED_VERSION}; \
     pecl install xlswriter-${XLSWRITER_VERSION}; \
@@ -80,7 +84,7 @@ RUN set -eux; \
     docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/; \
     docker-php-ext-install -j$(nproc) gd iconv intl pdo pdo_mysql zip ldap pcntl pdo_firebird soap; \
     docker-php-ext-enable memcached xlswriter sqlsrv pcntl pdo_sqlsrv xdebug; \
-    ## Cleanup build time dependencies
+    ## Cleanup build time dependencies \
     apt-get remove -y --purge \
       libfreetype6-dev \
       libjpeg62-turbo-dev \
